@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: DAM405 A4 - serverless breast-cancer classifier (scikit-learn on AWS Lambda)
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, prod]
+  LogLevel:
+    Type: String
+    Default: INFO
+    AllowedValues: [DEBUG, INFO, WARNING, ERROR]
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 1024        # more memory also means more CPU -> faster model load
+    Architectures:
+      - arm64               # Graviton: ~20% cheaper per GB-s; change to x86_64 on an Intel machine
+
+Resources:
+  InferenceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub dam405-bc-inference-${Stage}
+      Description: Breast-cancer diagnosis inference (LogisticRegression)
+      PackageType: Image
+      Environment:
+        Variables:
+          LOG_LEVEL: !Ref LogLevel
+          MAX_BATCH_SIZE: "100"
+      Events:
+        Predict:
+          Type: HttpApi       # API Gateway HTTP API, POST /predict
+          Properties:
+            Path: /predict
+            Method: POST
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: ./lambda
+      DockerTag: python3.12
+
+  InferenceLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${InferenceFunction}
+      RetentionInDays: 14
+
+Outputs:
+  PredictUrl:
+    Description: POST JSON here to get predictions
+    Value: !Sub https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/predict
+  FunctionName:
+    Value: !Ref InferenceFunction

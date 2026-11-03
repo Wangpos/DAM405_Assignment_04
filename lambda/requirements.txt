@@ -1,0 +1,3 @@
+# Must match the training environment (root requirements.txt) so the pickled model loads.
+numpy==1.26.4
+scikit-learn==1.5.2

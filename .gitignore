@@ -9,6 +9,13 @@ artifacts/
 lambda/model/*
 !lambda/model/.gitkeep
 
+# Credentials - never commit
+*.csv
+!data/**/*.csv
+*accessKeys*
+.aws/
+.env
+
 # Tools
 .aws-sam/
 .airflow/

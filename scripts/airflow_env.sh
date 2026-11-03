@@ -12,5 +12,7 @@ export PYTHONPATH="$PWD${PYTHONPATH:+:$PYTHONPATH}"   # lets tasks import the `p
 # macOS: avoid crashes when Airflow forks task processes
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 export NO_PROXY="*"
+# Run each task in a fresh interpreter instead of a forked one (fork + macOS = SIGSEGV)
+export AIRFLOW__CORE__EXECUTE_TASKS_NEW_PYTHON_INTERPRETER=True
 
 echo "AIRFLOW_HOME=$AIRFLOW_HOME"
